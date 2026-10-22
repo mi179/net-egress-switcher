@@ -4,6 +4,11 @@ from __future__ import annotations
 
 import sys
 import threading
+
+from egress_switcher.dpi import enable_per_monitor_v2
+
+enable_per_monitor_v2()
+
 import tkinter as tk
 import tkinter.font as tkfont
 from tkinter import messagebox
@@ -24,13 +29,11 @@ KIND_BADGE = {
 
 try:
     import ttkbootstrap as ttk
-    from ttkbootstrap.widgets.scrolled import ScrolledFrame
 
     USING_BOOTSTRAP = True
 except ImportError:  # pragma: no cover - 开发机和发布包都会装主题
     from tkinter import ttk
 
-    ScrolledFrame = None  # type: ignore[misc, assignment]
     USING_BOOTSTRAP = False
 
 
@@ -204,7 +207,8 @@ class App:
             root.title("网络出口切换")
             _fallback_theme(root)
         root.geometry("1040x860")
-        root.minsize(920, 680)
+        root.minsize(720, 480)
+        root.resizable(True, True)
         return root
 
     def _configure_fonts(self) -> None:
@@ -235,7 +239,11 @@ class App:
             pass
 
     def _build(self) -> None:
-        header = ttk.Frame(self.root, padding=(20, 16, 20, 8))
+        self.scroller = _PageScroll(self.root, on_width=self._wrap_to_width)
+        self.scroller.pack(fill="both", expand=True)
+        page = self.scroller.inner
+
+        header = ttk.Frame(page, padding=(20, 16, 20, 8))
         header.pack(fill="x")
         ttk.Label(header, text="网络出口切换", style="Title.TLabel").pack(anchor="w")
         ttk.Label(
@@ -244,16 +252,20 @@ class App:
             style="Subtle.TLabel",
         ).pack(anchor="w", pady=(4, 0))
 
-        self.banner = ttk.Label(self.root, text="", padding=(16, 8), wraplength=920, justify="left")
+        self.banner = ttk.Label(page, text="", padding=(16, 8), wraplength=880, justify="left")
         self.banner.pack(fill="x", padx=20, pady=(0, 8))
 
-        status_row = ttk.Frame(self.root, padding=(20, 0, 20, 8))
+        status_row = ttk.Frame(page, padding=(20, 0, 20, 8))
         status_row.pack(fill="x")
-        ttk.Label(status_row, textvariable=self.status, wraplength=760, justify="left").pack(side="left", fill="x", expand=True)
+        self.status_label = ttk.Label(status_row, textvariable=self.status, wraplength=720, justify="left")
+        self.status_label.pack(side="left", fill="x", expand=True)
         self._button(status_row, "刷新", self.reload, primary=False).pack(side="right")
 
-        bottom = ttk.Frame(self.root, padding=(20, 8, 20, 16))
-        bottom.pack(side="bottom", fill="x")
+        self.card_parent = ttk.Frame(page, padding=(12, 0, 12, 8))
+        self.card_parent.pack(fill="x")
+
+        bottom = ttk.Frame(page, padding=(20, 8, 20, 16))
+        bottom.pack(fill="x")
         ttk.Label(bottom, text="即将修改", style="Name.TLabel").pack(anchor="w")
         self.preview = tk.Text(
             bottom,
@@ -273,16 +285,15 @@ class App:
         self.restore_button = self._button(buttons, "恢复到更改前", self.restore_clicked, primary=False)
         self.restore_button.pack(side="left", padx=(8, 0))
         ttk.Label(buttons, text="取消授权窗口 = 系统保持原样", style="Subtle.TLabel").pack(side="right")
-
-        if USING_BOOTSTRAP and ScrolledFrame is not None:
-            self.cards = ScrolledFrame(self.root, autohide=True, width=1000, height=460)
-            self.cards.container.pack(fill="both", expand=True, padx=16, pady=(0, 4))
-            self.card_parent = self.cards
-        else:
-            scrolled = _SimpleScroll(self.root)
-            scrolled.pack(fill="both", expand=True, padx=16, pady=(0, 4))
-            self.card_parent = scrolled.inner
         self._tint_preview()
+
+    def _wrap_to_width(self, width: int) -> None:
+        text_width = max(240, width - 80)
+        try:
+            self.banner.configure(wraplength=text_width)
+            self.status_label.configure(wraplength=max(180, text_width - 120))
+        except (tk.TclError, AttributeError):
+            pass
 
     def _render_state(self) -> None:
         assert self.state is not None
@@ -505,17 +516,7 @@ def _pick_font(root) -> str:
 
 
 def _enable_dpi() -> None:
-    if sys.platform != "win32":
-        return
-    import ctypes
-
-    try:
-        ctypes.windll.shcore.SetProcessDpiAwareness(2)
-    except (AttributeError, OSError):
-        try:
-            ctypes.windll.user32.SetProcessDPIAware()
-        except (AttributeError, OSError):
-            pass
+    enable_per_monitor_v2()
 
 
 def _fallback_theme(root: tk.Tk) -> None:
@@ -536,21 +537,52 @@ def _fallback_theme(root: tk.Tk) -> None:
     style.configure("Subtle.TLabel", background=background, foreground="#52606d")
 
 
-class _SimpleScroll(ttk.Frame):
-    def __init__(self, parent) -> None:
-        super().__init__(parent)
-        canvas = tk.Canvas(self, highlightthickness=0, borderwidth=0)
-        bar = ttk.Scrollbar(self, orient="vertical", command=canvas.yview)
-        self.inner = ttk.Frame(canvas)
-        self.inner.bind("<Configure>", lambda _event: canvas.configure(scrollregion=canvas.bbox("all")))
-        canvas.create_window((0, 0), window=self.inner, anchor="nw")
-        canvas.configure(yscrollcommand=bar.set)
-        canvas.pack(side="left", fill="both", expand=True)
-        bar.pack(side="right", fill="y")
-        self._inner = self.inner
+class _PageScroll(ttk.Frame):
+    """整页滚动。窗口缩小时，预览和按钮仍能滚到，不会被裁掉。"""
 
-    def winfo_children(self):
-        return self.inner.winfo_children()
+    def __init__(self, parent, on_width=None) -> None:
+        super().__init__(parent)
+        self.on_width = on_width
+        self.canvas = tk.Canvas(self, highlightthickness=0, borderwidth=0, background="#eef3f8")
+        bar = ttk.Scrollbar(self, orient="vertical", command=self.canvas.yview)
+        self.inner = ttk.Frame(self.canvas)
+        self._window = self.canvas.create_window((0, 0), window=self.inner, anchor="nw")
+        self.inner.bind("<Configure>", self._fit_scroll)
+        self.canvas.bind("<Configure>", self._fit_width)
+        self.canvas.configure(yscrollcommand=bar.set)
+        self.canvas.pack(side="left", fill="both", expand=True)
+        bar.pack(side="right", fill="y")
+        self.canvas.bind("<Enter>", lambda _event: self._bind_wheel())
+        self.canvas.bind("<Leave>", lambda _event: self._unbind_wheel())
+
+    def _fit_scroll(self, _event=None) -> None:
+        self.canvas.configure(scrollregion=self.canvas.bbox("all"))
+
+    def _fit_width(self, event) -> None:
+        self.canvas.itemconfigure(self._window, width=event.width)
+        if self.on_width is not None:
+            self.on_width(event.width)
+
+    def _on_wheel(self, event) -> None:
+        if getattr(event, "num", None) == 4:
+            self.canvas.yview_scroll(-3, "units")
+        elif getattr(event, "num", None) == 5:
+            self.canvas.yview_scroll(3, "units")
+        else:
+            step = int(-event.delta / 120) if event.delta else 0
+            if step == 0:
+                step = -1 if event.delta > 0 else 1
+            self.canvas.yview_scroll(step, "units")
+
+    def _bind_wheel(self) -> None:
+        self.canvas.bind_all("<MouseWheel>", self._on_wheel)
+        self.canvas.bind_all("<Button-4>", self._on_wheel)
+        self.canvas.bind_all("<Button-5>", self._on_wheel)
+
+    def _unbind_wheel(self) -> None:
+        self.canvas.unbind_all("<MouseWheel>")
+        self.canvas.unbind_all("<Button-4>")
+        self.canvas.unbind_all("<Button-5>")
 
 
 def _grab_window(root, path: str) -> bool:

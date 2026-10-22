@@ -93,6 +93,10 @@ jobs:
           Write-Host "PE subsystem GUI=$guiSub CLI=$cliSub (2=window, 3=console)"
           if ($guiSub -ne 2) { throw "GUI exe is not a windowed binary" }
           if ($cliSub -ne 3) { throw "CLI exe is not a console binary" }
+          $guiBytes = [System.IO.File]::ReadAllBytes((Resolve-Path "dist\net-egress-switcher-gui.exe"))
+          $guiText = [System.Text.Encoding]::UTF8.GetString($guiBytes)
+          if ($guiText -notmatch "PerMonitorV2") { throw "GUI exe manifest does not declare PerMonitorV2" }
+          if ($guiText -notmatch "asInvoker") { throw "GUI exe manifest must stay asInvoker" }
           $help = & .\dist\net-egress-switcher-cli.exe --help
           $code = $LASTEXITCODE
           $help | Out-File -FilePath dist\windows-cli-help.txt -Encoding utf8

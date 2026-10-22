@@ -57,8 +57,11 @@ def build_one(pyi: list[str], root: Path, name: str, entry: str, windowed: bool)
         "--hidden-import",
         "pystray",
         "--windowed" if windowed else "--console",
-        entry,
     ]
+    if sys.platform == "win32":
+        # 替换默认清单。保持 asInvoker，只加上 Per-Monitor V2。
+        command.extend(["--manifest", str(root / "packaging" / "windows" / "app.manifest")])
+    command.append(entry)
     print(f"[BUILD] {name}")
     result = subprocess.run(command, cwd=root, check=False)
     if result.returncode != 0:

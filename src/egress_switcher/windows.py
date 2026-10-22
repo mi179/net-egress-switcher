@@ -66,13 +66,18 @@ try {
 } catch {
   $adapters = @()
 }
-@{
+$json = @{
   interfaces = $ifaces
   addresses = $addrs
   addresses6 = $addrs6
   routes = $routes
   adapters = $adapters
 } | ConvertTo-Json -Depth 5 -Compress
+# 直接写 UTF-8 字节。中文 Windows 的控制台是 GBK，若让宿主再编码，网卡名会坏。
+$bytes = [System.Text.UTF8Encoding]::new($false).GetBytes($json + "`n")
+$stdout = [Console]::OpenStandardOutput()
+$stdout.Write($bytes, 0, $bytes.Length)
+$stdout.Flush()
 """.strip()
 
 

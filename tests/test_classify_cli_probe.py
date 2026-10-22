@@ -163,6 +163,83 @@ class CollectTests(unittest.TestCase):
         self.assertEqual(state.default_interface().name, "Meta")
         self.assertEqual(state.by_name("以太网 2").kind.value, "usb_tether")
 
+    def test_gbk_json_keeps_ethernet_and_wlan_names(self):
+        import json
+
+        from egress_switcher.windows import POWERSHELL_QUERY, parse_windows_json
+
+        payload = {
+            "interfaces": [
+                {
+                    "InterfaceIndex": 8,
+                    "InterfaceAlias": "以太网",
+                    "InterfaceMetric": 25,
+                    "AutomaticMetric": "Enabled",
+                    "ConnectionState": "Connected",
+                },
+                {
+                    "InterfaceIndex": 12,
+                    "InterfaceAlias": "WLAN",
+                    "InterfaceMetric": 40,
+                    "AutomaticMetric": "Enabled",
+                    "ConnectionState": "Connected",
+                },
+            ],
+            "addresses": [
+                {"InterfaceIndex": 8, "IPAddress": "192.168.1.50"},
+                {"InterfaceIndex": 12, "IPAddress": "10.0.0.15"},
+            ],
+            "addresses6": [],
+            "routes": [
+                {"InterfaceIndex": 8, "NextHop": "192.168.1.1", "RouteMetric": 0, "InterfaceMetric": 25},
+                {"InterfaceIndex": 12, "NextHop": "10.0.0.1", "RouteMetric": 0, "InterfaceMetric": 40},
+            ],
+            "adapters": [
+                {"Name": "以太网", "InterfaceDescription": "Realtek PCIe GbE", "Virtual": False},
+                {"Name": "WLAN", "InterfaceDescription": "Intel Wireless-AC", "Virtual": False},
+            ],
+        }
+        raw = json.dumps(payload, ensure_ascii=False).encode("gbk")
+        self.assertIn("以太网".encode("gbk"), raw)
+        state = parse_windows_json(decode_output(raw))
+        self.assertEqual(state.by_name("以太网").kind, InterfaceKind.WIRED)
+        self.assertEqual(state.by_name("WLAN").kind, InterfaceKind.WIFI)
+        self.assertEqual(state.by_name("以太网").gateway, "192.168.1.1")
+        self.assertEqual(state.by_name("WLAN").ipv4, ["10.0.0.15"])
+        self.assertIn("ConvertTo-Json", POWERSHELL_QUERY)
+        self.assertIn("OpenStandardOutput", POWERSHELL_QUERY)
+        self.assertNotIn("route print", POWERSHELL_QUERY)
+        self.assertNotIn("Format-List", POWERSHELL_QUERY)
+
+        calls = []
+
+        def run(args, timeout=20):
+            calls.append(list(args))
+            return CmdResult(list(args), 0, decode_output(raw), "")
+
+        from egress_switcher.collect import collect_windows
+
+        live = collect_windows(run)
+        self.assertEqual([iface.name for iface in live.interfaces], ["以太网", "WLAN"])
+        self.assertEqual(len(calls), 1)
+        self.assertNotIn("route", calls[0])
+
+    def test_dpi_manifest_is_per_monitor_v2_and_not_admin(self):
+        import inspect
+        from pathlib import Path
+
+        from egress_switcher.dpi import enable_per_monitor_v2
+
+        source = inspect.getsource(enable_per_monitor_v2)
+        self.assertIn("SetProcessDpiAwarenessContext", source)
+        self.assertIn("SetProcessDpiAwareness", source)
+        manifest = Path("packaging/windows/app.manifest").read_text(encoding="utf-8")
+        self.assertIn("PerMonitorV2", manifest)
+        self.assertIn('level="asInvoker"', manifest)
+        self.assertNotIn("requireAdministrator", manifest)
+        build = Path("build.py").read_text(encoding="utf-8")
+        self.assertIn("app.manifest", build)
+
     def test_live_linux_collect_is_readonly(self):
         if not shutil.which("ip"):
             self.skipTest("没有 ip 命令")

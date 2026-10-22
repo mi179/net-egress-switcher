@@ -17,6 +17,9 @@ def main() -> int:
         from egress_switcher.cli import main as cli_main
 
         return cli_main()
+    from egress_switcher.dpi import enable_per_monitor_v2
+
+    enable_per_monitor_v2()
     from egress_switcher.gui import launch
 
     return launch()

@@ -20,6 +20,11 @@ class GuiTests(unittest.TestCase):
         app = App(demo=True, enable_tray=False, headless_notices=True)
         try:
             app.root.update()
+            self.assertTrue(app.root.resizable()[0])
+            self.assertTrue(app.root.resizable()[1])
+            self.assertIs(app.preview.winfo_toplevel(), app.root)
+            self.assertIn(app.scroller.inner, _ancestors(app.preview))
+            self.assertIn(app.scroller.inner, _ancestors(app.apply_button))
             self.assertIn("演示数据", app.banner.cget("text"))
             self.assertIn("Meta", app.banner.cget("text"))
             texts = _widget_texts(app.root)
@@ -45,6 +50,15 @@ class GuiTests(unittest.TestCase):
 
     def apply_button_disabled_for_noop(self, app):
         self.assertEqual(str(app.apply_button.cget("state")), "disabled")
+
+
+def _ancestors(widget):
+    found = []
+    current = widget
+    while current is not None:
+        found.append(current)
+        current = getattr(current, "master", None)
+    return found
 
 
 def _widget_texts(widget) -> list[str]:

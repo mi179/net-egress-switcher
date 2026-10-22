@@ -12,7 +12,7 @@ from egress_switcher.linux import parse_linux
 from egress_switcher.macos import parse_macos
 from egress_switcher.models import SystemState
 from egress_switcher.textutil import decode_output
-from egress_switcher.windows import POWERSHELL_QUERY, parse_windows_json, parse_windows_text
+from egress_switcher.windows import POWERSHELL_QUERY, parse_windows_json
 
 
 @dataclass
@@ -44,23 +44,17 @@ def collect_state(runner: SubprocessRunner | None = None) -> SystemState:
 
 
 def collect_windows(run: SubprocessRunner) -> SystemState:
+    """只读 PowerShell 的 ConvertTo-Json。不解析 route print：中文 Windows 会把表头本地化。"""
     powershell = shutil.which("powershell.exe") or shutil.which("powershell") or "powershell.exe"
     result = run([powershell, "-NoProfile", "-NonInteractive", "-Command", POWERSHELL_QUERY])
-    if result.returncode == 0 and result.stdout.strip():
-        try:
-            state = parse_windows_json(result.stdout)
-            state.source = "windows-live"
-            return state
-        except ValueError:
-            pass
-    route = run(["route", "print", "-4"])
-    ipinterface = run([powershell, "-NoProfile", "-NonInteractive", "-Command", _format_list("Get-NetIPInterface -AddressFamily IPv4")])
-    addresses = run([powershell, "-NoProfile", "-NonInteractive", "-Command", _format_list("Get-NetIPAddress -AddressFamily IPv4")])
-    addresses6 = run([powershell, "-NoProfile", "-NonInteractive", "-Command", _format_list("Get-NetIPAddress -AddressFamily IPv6")])
-    if route.returncode != 0 or ipinterface.returncode != 0:
-        raise CommandNotFound("读不到 Windows 路由或接口跃点。")
-    state = parse_windows_text(route.stdout, ipinterface.stdout, addresses.stdout, addresses6.stdout)
-    state.source = "windows-live-text"
+    if result.returncode != 0 or not result.stdout.strip():
+        detail = result.stderr.strip() or "PowerShell 没有返回 JSON"
+        raise CommandNotFound(f"读不到 Windows 网卡（ConvertTo-Json）。{detail}")
+    try:
+        state = parse_windows_json(result.stdout)
+    except ValueError as exc:
+        raise CommandNotFound(f"Windows 网卡 JSON 无法解析：{exc}") from exc
+    state.source = "windows-live"
     return state
 
 
@@ -105,10 +99,3 @@ def collect_linux(run: SubprocessRunner) -> SystemState:
     state = parse_linux(route.stdout, addr.stdout, addr6.stdout, devices, metrics)
     state.source = "linux-live"
     return state
-
-
-def _format_list(command: str) -> str:
-    return (
-        "[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false); "
-        f"{command} | Format-List | Out-String -Width 200"
-    )
