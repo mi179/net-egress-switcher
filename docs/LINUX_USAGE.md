@@ -31,4 +31,4 @@ egress-switcher restore --yes
 egress-switcher automatic --yes
 ```
 
-依赖：`python3`、`python3-tk`、`python3-pil`、`iproute2`、`pkexec`。建议安装 `network-manager`。
+依赖：`python3`、`python3-tk`、`python3-pil`、`python3-pil.imagetk`、`iproute2`、`pkexec`。建议安装 `network-manager`。

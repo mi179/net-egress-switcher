@@ -1,5 +1,6 @@
 #!/bin/bash
-# 打一个架构无关的 Debian 包。界面主题是纯 Python，Pillow 用系统的 python3-pil。
+# 打一个架构无关的 Debian 包。界面主题是纯 Python。
+# Pillow 用系统包：python3-pil 不含 ImageTk，主题还需要 python3-pil.imagetk。
 
 set -euo pipefail
 
@@ -99,7 +100,7 @@ Priority: optional
 Architecture: all
 Maintainer: mi179 <noreply@github.com>
 Installed-Size: $INSTALLED_SIZE
-Depends: python3 (>= 3.10), python3-tk, python3-pil, iproute2, pkexec
+Depends: python3 (>= 3.10), python3-tk, python3-pil, python3-pil.imagetk, iproute2, pkexec
 Recommends: network-manager
 Homepage: https://github.com/mi179/net-egress-switcher
 Description: switch the default IPv4 network egress
