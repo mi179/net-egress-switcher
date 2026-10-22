@@ -20,6 +20,7 @@ _TUN_SUBSTR = (
     "netbird",
     "sing-box",
     "singbox",
+    "sing-tun",
     "outline",
     "warp",
     "gamevpn",

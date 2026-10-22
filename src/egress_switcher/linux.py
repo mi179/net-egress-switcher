@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import re
 
+from egress_switcher.capture import RouteEntry, apply_tun_capture, parse_ip_route_get_device, parse_prefix
 from egress_switcher.classify import classify
 from egress_switcher.models import Interface, SystemState, finish_selectable, mark_route_defaults
 
@@ -18,6 +19,8 @@ def parse_linux(
     ip_addr6: str = "",
     nmcli_devices: str = "",
     nmcli_metrics: str = "",
+    route_get: str = "",
+    process_text: str = "",
 ) -> SystemState:
     addresses = parse_ip_addr(ip_addr)
     addresses6 = parse_ip_addr(ip_addr6) if ip_addr6 else {}
@@ -82,12 +85,19 @@ def parse_linux(
         finish_selectable(iface)
         interfaces.append(iface)
     mark_route_defaults(interfaces)
-    return SystemState(
+    state = SystemState(
         platform="linux",
         interfaces=interfaces,
         source="linux-text",
         nm_available=nm_available,
     )
+    apply_tun_capture(
+        state,
+        _route_entries(routes),
+        probe_device=parse_ip_route_get_device(route_get) if route_get.strip() else None,
+        process_text=process_text,
+    )
+    return state
 
 
 def parse_ip_route(text: str) -> list[dict]:
@@ -115,6 +125,19 @@ def parse_ip_route(text: str) -> list[dict]:
             index += 1
         routes.append(info)
     return routes
+
+
+def _route_entries(routes: list[dict]) -> list[RouteEntry]:
+    entries: list[RouteEntry] = []
+    for route in routes:
+        device = route.get("dev")
+        if not device:
+            continue
+        prefix = parse_prefix(str(route.get("dst") or ""))
+        if prefix is None:
+            continue
+        entries.append(RouteEntry(device, prefix[0], prefix[1], route.get("via"), route.get("metric")))
+    return entries
 
 
 def parse_ip_addr(text: str) -> dict[str, dict]:

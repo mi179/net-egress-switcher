@@ -103,6 +103,7 @@ class SystemState:
     service_order: list[str] = field(default_factory=list)
     nm_available: bool = False
     notes: list[str] = field(default_factory=list)
+    capture: object | None = None
 
     def by_name(self, name: str) -> Interface | None:
         for iface in self.interfaces:

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import re
 
+from egress_switcher.capture import RouteEntry, apply_tun_capture, parse_ifconfig_inet, parse_prefix
 from egress_switcher.classify import classify
 from egress_switcher.models import Interface, InterfaceKind, SystemState, finish_selectable
 
@@ -16,6 +17,9 @@ def parse_macos(
     getinfo_text: str,
     netstat_text: str,
     route_get_text: str,
+    route_get_host: str = "",
+    ifconfig_text: str = "",
+    process_text: str = "",
 ) -> SystemState:
     services = parse_service_order(service_order_text)
     infos = parse_getinfo_bundle(getinfo_text)
@@ -60,12 +64,22 @@ def parse_macos(
         if iface.is_default and not iface.gateway:
             iface.gateway = chosen.get("gateway")
     _mark_physical_preferred(interfaces)
-    return SystemState(
+    state = SystemState(
         platform="macos",
         interfaces=interfaces,
         source="macos-text",
         service_order=order_names,
     )
+    probe = parse_route_get_default(route_get_host).get("interface") if route_get_host.strip() else None
+    apply_tun_capture(
+        state,
+        _route_entries(netstat_text),
+        probe_device=probe,
+        preferred_default_device=chosen_device,
+        process_text=process_text,
+        addresses=parse_ifconfig_inet(ifconfig_text),
+    )
+    return state
 
 
 def parse_service_order(text: str) -> list[dict]:
@@ -130,16 +144,37 @@ def parse_getinfo(text: str) -> dict:
     return {"ipv4": ipv4, "gateway": gateway, "ipv6": ipv6}
 
 
-def parse_netstat_defaults(text: str) -> list[dict[str, str]]:
+def parse_netstat_routes(text: str) -> list[dict[str, str]]:
     routes: list[dict[str, str]] = []
     for line in text.splitlines():
         parts = line.split()
-        if len(parts) < 4 or parts[0] != "default":
+        if len(parts) < 4:
             continue
-        gateway, _flags, device = parts[1], parts[2], parts[3]
-        if re.match(r"^[A-Za-z0-9]+$", device):
-            routes.append({"gateway": gateway, "device": device})
+        dest, gateway, device = parts[0], parts[1], parts[3]
+        if dest in {"Destination", "Routing", "Internet:"} or device in {"Netif", "Expire"}:
+            continue
+        if not re.match(r"^[A-Za-z][A-Za-z0-9]*$", device):
+            continue
+        routes.append({"dest": dest, "gateway": gateway, "device": device})
     return routes
+
+
+def parse_netstat_defaults(text: str) -> list[dict[str, str]]:
+    return [
+        {"gateway": row["gateway"], "device": row["device"]}
+        for row in parse_netstat_routes(text)
+        if row["dest"] == "default"
+    ]
+
+
+def _route_entries(text: str) -> list[RouteEntry]:
+    entries: list[RouteEntry] = []
+    for row in parse_netstat_routes(text):
+        prefix = parse_prefix(row["dest"])
+        if prefix is None:
+            continue
+        entries.append(RouteEntry(row["device"], prefix[0], prefix[1], row["gateway"]))
+    return entries
 
 
 def parse_route_get_default(text: str) -> dict[str, str | None]:

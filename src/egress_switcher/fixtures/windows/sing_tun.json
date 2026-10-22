@@ -1,0 +1,30 @@
+{
+  "interfaces": [
+    {"InterfaceIndex": 8, "InterfaceAlias": "以太网", "InterfaceMetric": 10, "AutomaticMetric": "Enabled", "ConnectionState": "Connected"},
+    {"InterfaceIndex": 12, "InterfaceAlias": "Wi-Fi", "InterfaceMetric": 25, "AutomaticMetric": "Enabled", "ConnectionState": "Connected"},
+    {"InterfaceIndex": 40, "InterfaceAlias": "sing-tun", "InterfaceMetric": 0, "AutomaticMetric": "Disabled", "ConnectionState": "Connected"}
+  ],
+  "addresses": [
+    {"InterfaceIndex": 8, "IPAddress": "192.168.1.50"},
+    {"InterfaceIndex": 12, "IPAddress": "192.168.0.20"},
+    {"InterfaceIndex": 40, "IPAddress": "198.18.0.1"}
+  ],
+  "routes": [
+    {"InterfaceIndex": 12, "InterfaceAlias": "Wi-Fi", "NextHop": "192.168.0.1", "RouteMetric": 0, "InterfaceMetric": 25, "DestinationPrefix": "0.0.0.0/0"},
+    {"InterfaceIndex": 8, "InterfaceAlias": "以太网", "NextHop": "192.168.1.1", "RouteMetric": 0, "InterfaceMetric": 10, "DestinationPrefix": "0.0.0.0/0"},
+    {"InterfaceIndex": 40, "InterfaceAlias": "sing-tun", "NextHop": "198.18.0.1", "RouteMetric": 0, "InterfaceMetric": 0, "DestinationPrefix": "1.0.0.0/8"},
+    {"InterfaceIndex": 40, "InterfaceAlias": "sing-tun", "NextHop": "198.18.0.1", "RouteMetric": 0, "InterfaceMetric": 0, "DestinationPrefix": "2.0.0.0/7"},
+    {"InterfaceIndex": 40, "InterfaceAlias": "sing-tun", "NextHop": "198.18.0.1", "RouteMetric": 0, "InterfaceMetric": 0, "DestinationPrefix": "4.0.0.0/6"},
+    {"InterfaceIndex": 40, "InterfaceAlias": "sing-tun", "NextHop": "198.18.0.1", "RouteMetric": 0, "InterfaceMetric": 0, "DestinationPrefix": "8.0.0.0/5"},
+    {"InterfaceIndex": 40, "InterfaceAlias": "sing-tun", "NextHop": "198.18.0.1", "RouteMetric": 0, "InterfaceMetric": 0, "DestinationPrefix": "16.0.0.0/4"},
+    {"InterfaceIndex": 40, "InterfaceAlias": "sing-tun", "NextHop": "198.18.0.1", "RouteMetric": 0, "InterfaceMetric": 0, "DestinationPrefix": "32.0.0.0/3"},
+    {"InterfaceIndex": 40, "InterfaceAlias": "sing-tun", "NextHop": "198.18.0.1", "RouteMetric": 0, "InterfaceMetric": 0, "DestinationPrefix": "64.0.0.0/2"},
+    {"InterfaceIndex": 40, "InterfaceAlias": "sing-tun", "NextHop": "198.18.0.1", "RouteMetric": 0, "InterfaceMetric": 0, "DestinationPrefix": "128.0.0.0/1"}
+  ],
+  "adapters": [
+    {"Name": "以太网", "InterfaceDescription": "Realtek PCIe GbE Family Controller", "Virtual": false, "HardwareInterface": true},
+    {"Name": "Wi-Fi", "InterfaceDescription": "Intel(R) Wi-Fi 6 AX201 160MHz", "Virtual": false, "HardwareInterface": true},
+    {"Name": "sing-tun", "InterfaceDescription": "sing-box Tunnel", "Virtual": true, "HardwareInterface": false}
+  ],
+  "best": {"InterfaceIndex": 40, "InterfaceAlias": "sing-tun"}
+}

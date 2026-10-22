@@ -73,7 +73,15 @@ def collect_macos(run: SubprocessRunner) -> SystemState:
         info = run(["networksetup", "-getinfo", service["name"]])
         blocks.append(f"=== {service['name']} ===")
         blocks.append(info.stdout)
-    state = parse_macos(order.stdout, "\n".join(blocks), netstat.stdout, route_get.stdout)
+    state = parse_macos(
+        order.stdout,
+        "\n".join(blocks),
+        netstat.stdout,
+        route_get.stdout,
+        _optional_stdout(run, ["route", "-n", "get", "1.1.1.1"]),
+        _optional_stdout(run, ["ifconfig", "-a"]),
+        _optional_stdout(run, ["ps", "-ax", "-o", "comm="]),
+    )
     state.source = "macos-live"
     return state
 
@@ -96,6 +104,24 @@ def collect_linux(run: SubprocessRunner) -> SystemState:
         devices = device_result.stdout
     if metric_result is not None and metric_result.returncode == 0:
         metrics = metric_result.stdout
-    state = parse_linux(route.stdout, addr.stdout, addr6.stdout, devices, metrics)
+    state = parse_linux(
+        route.stdout,
+        addr.stdout,
+        addr6.stdout,
+        devices,
+        metrics,
+        _optional_stdout(run, ["ip", "route", "get", "1.1.1.1"]),
+        _optional_stdout(run, ["ps", "-e", "-o", "comm="]),
+    )
     state.source = "linux-live"
     return state
+
+
+def _optional_stdout(run: SubprocessRunner, args: list[str]) -> str:
+    try:
+        result = run(args)
+    except CommandNotFound:
+        return ""
+    if result.returncode != 0:
+        return ""
+    return result.stdout

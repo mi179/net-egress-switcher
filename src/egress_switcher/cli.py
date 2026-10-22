@@ -84,7 +84,8 @@ def run_command(args: argparse.Namespace) -> int:
             print(format_table(state))
             for note in state.notes:
                 print(note)
-            _print_tun(state)
+            if state.capture is None:
+                _print_tun(state)
         return 0
 
     snapshot = None if args.demo else _snapshot()
@@ -135,13 +136,17 @@ def load_state(demo: bool) -> SystemState:
 
 
 def format_table(state: SystemState) -> str:
+    lines: list[str] = []
+    if state.capture is not None:
+        lines.append(state.capture.banner())
+        lines.append("")
     rows = []
     for iface in state.interfaces:
         if iface.kind.value == "loopback":
             continue
         flags = []
         if iface.is_default:
-            flags.append("当前默认路由")
+            flags.append("实际出口")
         elif iface.is_physical_preferred:
             flags.append("物理优先")
         if not iface.selectable:
@@ -159,14 +164,14 @@ def format_table(state: SystemState) -> str:
         )
     headers = ["名称", "类型", "IPv4", "网关", "优先级", "互联网", "状态"]
     widths = [max(display_width(item) for item in [header, *(row[index] for row in rows)]) for index, header in enumerate(headers)] if rows else [display_width(item) for item in headers]
-    lines = ["  ".join(pad(header, widths[index]) for index, header in enumerate(headers))]
+    lines.append("  ".join(pad(header, widths[index]) for index, header in enumerate(headers)))
     lines.append("  ".join("-" * width for width in widths))
     for row in rows:
         lines.append("  ".join(pad(cell, widths[index]) for index, cell in enumerate(row)))
     default = state.default_interface()
     if default:
         lines.append("")
-        lines.append(f"当前默认路由：{default.name}（{default.kind_label()}）")
+        lines.append(f"实际出口：{default.name}（{default.kind_label()}）")
     return "\n".join(lines)
 
 
@@ -193,6 +198,9 @@ def state_to_json(state: SystemState) -> dict:
         "default": state.default_interface().name if state.default_interface() else None,
         "physical_preferred": state.physical_preferred().name if state.physical_preferred() else None,
         "tun": [iface.name for iface in state.tun_interfaces()],
+        "capture": None
+        if state.capture is None
+        else {"device": state.capture.device, "title": state.capture.title, "banner": state.capture.banner()},
         "notes": state.notes,
         "interfaces": [_iface_json(iface) for iface in state.interfaces if iface.kind.value != "loopback"],
     }

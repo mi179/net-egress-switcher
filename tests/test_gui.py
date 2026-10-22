@@ -27,6 +27,8 @@ class GuiTests(unittest.TestCase):
             self.assertIn(app.scroller.inner, _ancestors(app.apply_button))
             self.assertIn("演示数据", app.banner.cget("text"))
             self.assertIn("Meta", app.banner.cget("text"))
+            self.assertIn("切换出口不会生效", app.banner.cget("text"))
+            self.assertIn("实际出口：Meta", app.status.get())
             texts = _widget_texts(app.root)
             self.assertTrue(any("2408:4000:1234::50" in item for item in texts))
             self.assertTrue(any("仅展示" in item for item in texts))
@@ -37,6 +39,7 @@ class GuiTests(unittest.TestCase):
             self.assertIn("→ 1（手动）", preview)
             self.assertIn("不修改：", preview)
             self.assertIn("Meta", preview)
+            self.assertIn("切换只改变代理自己出门走哪张网卡", preview)
             with mock.patch("egress_switcher.elevate.request_apply") as apply:
                 app.apply_clicked()
                 apply.assert_not_called()

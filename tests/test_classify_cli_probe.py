@@ -55,7 +55,7 @@ class CliTests(unittest.TestCase):
         self.assertEqual(code, 0)
         self.assertIn("Meta", stdout.getvalue())
         self.assertIn("USB 共享", stdout.getvalue())
-        self.assertIn("当前默认路由", stdout.getvalue())
+        self.assertIn("实际出口", stdout.getvalue())
 
         stdout = io.StringIO()
         stderr = io.StringIO()
@@ -143,7 +143,10 @@ class CollectTests(unittest.TestCase):
         }
 
         def run(args, timeout=20):
-            return CmdResult(args, 0, outputs[tuple(args)], "")
+            key = tuple(args)
+            if key not in outputs:
+                return CmdResult(list(args), 1, "", "optional command unavailable")
+            return CmdResult(list(args), 0, outputs[key], "")
 
         state = collect_linux(run)
         self.assertEqual(state.default_interface().name, "Meta")

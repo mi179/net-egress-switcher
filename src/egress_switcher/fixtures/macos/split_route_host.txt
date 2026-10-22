@@ -1,0 +1,6 @@
+   route to: 1.1.1.1
+destination: 1.1.1.1
+       mask: 255.255.255.255
+    gateway: 198.18.0.1
+  interface: utun1024
+      flags: <UP,GATEWAY,DONE,STATIC,PRCLONING>

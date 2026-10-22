@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+from egress_switcher.capture import PREVIEW_NOTE
 from egress_switcher.errors import ResolveError
 from egress_switcher.models import Interface, InterfaceKind, SystemState
 from egress_switcher.validate import validate_device, validate_ipv4, validate_label, validate_metric
@@ -452,6 +453,8 @@ def _untouched_phrase(state: SystemState) -> str:
 
 def _common_warnings(state: SystemState) -> list[str]:
     warnings = [IPV4_NOTE, ELEVATION_NOTE]
+    if state.capture is not None:
+        warnings.append(PREVIEW_NOTE)
     tuns = [_tun_label(iface) for iface in state.tun_interfaces()]
     if tuns:
         warnings.append(

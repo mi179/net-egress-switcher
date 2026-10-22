@@ -89,6 +89,10 @@ class ParseTests(unittest.TestCase):
         self.assertIn("Get-NetRoute", POWERSHELL_QUERY)
         self.assertIn("Get-NetAdapter", POWERSHELL_QUERY)
         self.assertIn("ConvertTo-Json", POWERSHELL_QUERY)
+        self.assertIn("GetBestRoute2", POWERSHELL_QUERY)
+        self.assertIn("8.8.8.8", POWERSHELL_QUERY)
+        self.assertNotIn("Set-NetIPInterface", POWERSHELL_QUERY)
+        self.assertNotIn("Remove-NetRoute", POWERSHELL_QUERY)
 
     def test_single_object_json_is_accepted(self):
         payload = {

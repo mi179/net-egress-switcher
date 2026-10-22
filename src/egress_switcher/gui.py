@@ -302,13 +302,13 @@ class App:
         banner = self._banner_text()
         self.banner.configure(text=banner)
         if USING_BOOTSTRAP:
-            self.banner.configure(bootstyle="warning" if self.state.tun_interfaces() or self.demo else "secondary")
+            self.banner.configure(bootstyle="warning" if self.state.capture or self.state.tun_interfaces() or self.demo else "secondary")
         default = self.state.default_interface()
         physical = self.state.physical_preferred()
         if default:
-            text = f"当前默认路由：{default.name}（{default.kind_label()}）"
+            text = f"实际出口：{default.name}（{default.kind_label()}）"
         else:
-            text = "当前没有 IPv4 默认路由"
+            text = "当前没有 IPv4 实际出口"
         if physical and (default is None or physical.name != default.name):
             text += f"      物理网卡里优先：{physical.name}"
         if self.snapshot:
@@ -353,7 +353,7 @@ class App:
         badges.grid(row=0, column=2, sticky="w")
         self._badge(badges, iface.kind_label(), KIND_BADGE.get(iface.kind, "secondary")).pack(side="left", padx=(0, 4))
         if iface.is_default:
-            self._badge(badges, "当前默认路由", "danger" if iface.kind == InterfaceKind.VPN_TUN else "success").pack(side="left", padx=(0, 4))
+            self._badge(badges, "实际出口", "danger" if iface.kind == InterfaceKind.VPN_TUN else "success").pack(side="left", padx=(0, 4))
         elif iface.is_physical_preferred:
             self._badge(badges, "物理优先", "info").pack(side="left", padx=(0, 4))
         if not iface.selectable:
@@ -376,9 +376,11 @@ class App:
 
     def _banner_text(self) -> str:
         parts = []
+        if self.state and self.state.capture is not None:
+            parts.append(self.state.capture.banner())
         if self.demo:
             parts.append("演示数据：录制的 Windows 样例，不是这台电脑的网卡。联网结果也是样例，不会修改系统。")
-        if self.state and self.state.tun_interfaces():
+        if self.state and self.state.tun_interfaces() and self.state.capture is None:
             names = "、".join(iface.name for iface in self.state.tun_interfaces())
             parts.append(f"检测到 TUN/代理「{names}」。它仍会接管普通程序的流量；切换物理出口不会关闭它，也不会改它的路由。")
         return "\n".join(parts)
