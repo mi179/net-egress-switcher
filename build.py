@@ -36,6 +36,10 @@ def build_one(pyi: list[str], root: Path, name: str, entry: str, windowed: bool)
         "--clean",
         "--noconfirm",
         "--noupx",
+        # 引导程序用隔离配置，不读 PYTHONUTF8。没有这项时，
+        # 英文 Windows 的标准输出是 cp1252，中文 --help 会直接崩。
+        "--python-option",
+        "X utf8",
         "--name",
         name,
         "--paths",

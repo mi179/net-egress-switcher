@@ -153,7 +153,14 @@ jobs:
             shasum -a 256 net-egress-switcher-macos-arm64.zip > net-egress-switcher-macos-arm64.zip.sha256
             cat net-egress-switcher-macos-arm64.zip.sha256
           )
-          unzip -l dist/net-egress-switcher-macos-arm64.zip | grep -q "网络出口切换.app/"
+          python3 - <<'PY'
+          import zipfile
+          path = "dist/net-egress-switcher-macos-arm64.zip"
+          names = zipfile.ZipFile(path).namelist()
+          print("\n".join(names[:40]))
+          if not any("Contents/MacOS" in name for name in names):
+              raise SystemExit("zip 里没有 .app/Contents/MacOS")
+          PY
       - uses: actions/upload-artifact@v4
         with:
           name: macos-arm64
