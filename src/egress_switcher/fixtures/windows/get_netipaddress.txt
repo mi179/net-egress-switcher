@@ -1,0 +1,27 @@
+InterfaceIndex : 8
+IPAddress      : 192.168.1.50
+PrefixOrigin   : Dhcp
+
+InterfaceIndex : 12
+IPAddress      : 10.20.30.15
+PrefixOrigin   : Dhcp
+
+InterfaceIndex : 20
+IPAddress      : 172.20.10.5
+PrefixOrigin   : Dhcp
+
+InterfaceIndex : 36
+IPAddress      : 172.20.80.1
+PrefixOrigin   : Manual
+
+InterfaceIndex : 41
+IPAddress      : 192.168.148.1
+PrefixOrigin   : Manual
+
+InterfaceIndex : 5
+IPAddress      : 198.18.0.1
+PrefixOrigin   : Manual
+
+InterfaceIndex : 1
+IPAddress      : 127.0.0.1
+PrefixOrigin   : WellKnown

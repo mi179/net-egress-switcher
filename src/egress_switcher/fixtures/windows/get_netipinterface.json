@@ -1,0 +1,41 @@
+{
+  "interfaces": [
+    {"InterfaceIndex": 8, "InterfaceAlias": "以太网", "InterfaceMetric": 25, "AutomaticMetric": "Enabled", "ConnectionState": "Connected"},
+    {"InterfaceIndex": 12, "InterfaceAlias": "Wi-Fi", "InterfaceMetric": 50, "AutomaticMetric": true, "ConnectionState": "Connected"},
+    {"InterfaceIndex": 20, "InterfaceAlias": "以太网 2", "InterfaceMetric": 35, "AutomaticMetric": "Enabled", "ConnectionState": "Connected"},
+    {"InterfaceIndex": 22, "InterfaceAlias": "以太网 3", "InterfaceMetric": 25, "AutomaticMetric": "Enabled", "ConnectionState": "Disconnected"},
+    {"InterfaceIndex": 36, "InterfaceAlias": "vEthernet (Default Switch)", "InterfaceMetric": 15, "AutomaticMetric": "Enabled", "ConnectionState": "Connected"},
+    {"InterfaceIndex": 41, "InterfaceAlias": "VMware Network Adapter VMnet8", "InterfaceMetric": 25, "AutomaticMetric": "Disabled", "ConnectionState": "Connected"},
+    {"InterfaceIndex": 5, "InterfaceAlias": "Meta", "InterfaceMetric": 0, "AutomaticMetric": "Disabled", "ConnectionState": "Connected"},
+    {"InterfaceIndex": 1, "InterfaceAlias": "Loopback Pseudo-Interface 1", "InterfaceMetric": 75, "AutomaticMetric": "Enabled", "ConnectionState": "Connected"}
+  ],
+  "addresses": [
+    {"InterfaceIndex": 8, "IPAddress": "192.168.1.50"},
+    {"InterfaceIndex": 12, "IPAddress": "10.20.30.15"},
+    {"InterfaceIndex": 20, "IPAddress": "172.20.10.5"},
+    {"InterfaceIndex": 36, "IPAddress": "172.20.80.1"},
+    {"InterfaceIndex": 41, "IPAddress": "192.168.148.1"},
+    {"InterfaceIndex": 5, "IPAddress": "198.18.0.1"},
+    {"InterfaceIndex": 1, "IPAddress": "127.0.0.1"}
+  ],
+  "addresses6": [
+    {"InterfaceAlias": "以太网", "IPAddress": "2408:4000:1234::50"},
+    {"InterfaceAlias": "以太网", "IPAddress": "fe80::abcd%8"},
+    {"InterfaceAlias": "Wi-Fi", "IPAddress": "fe80::1234%12"}
+  ],
+  "routes": [
+    {"InterfaceIndex": 8, "InterfaceAlias": "以太网", "NextHop": "192.168.1.1", "RouteMetric": 0, "InterfaceMetric": 25, "DestinationPrefix": "0.0.0.0/0"},
+    {"InterfaceIndex": 12, "InterfaceAlias": "Wi-Fi", "NextHop": "10.20.30.1", "RouteMetric": 0, "InterfaceMetric": 50, "DestinationPrefix": "0.0.0.0/0"},
+    {"InterfaceIndex": 20, "InterfaceAlias": "以太网 2", "NextHop": "172.20.10.1", "RouteMetric": 0, "InterfaceMetric": 35, "DestinationPrefix": "0.0.0.0/0"},
+    {"InterfaceIndex": 5, "InterfaceAlias": "Meta", "NextHop": "198.18.0.2", "RouteMetric": 0, "InterfaceMetric": 0, "DestinationPrefix": "0.0.0.0/0"}
+  ],
+  "adapters": [
+    {"Name": "以太网", "InterfaceDescription": "Realtek PCIe GbE Family Controller", "Status": "Up", "Virtual": false, "HardwareInterface": true},
+    {"Name": "Wi-Fi", "InterfaceDescription": "Intel(R) Wi-Fi 6 AX201 160MHz", "Status": "Up", "Virtual": false, "HardwareInterface": true},
+    {"Name": "以太网 2", "InterfaceDescription": "Remote NDIS based Internet Sharing Device", "Status": "Up", "Virtual": false, "HardwareInterface": true},
+    {"Name": "以太网 3", "InterfaceDescription": "Realtek USB GbE Family Controller", "Status": "Disconnected", "Virtual": false, "HardwareInterface": true},
+    {"Name": "vEthernet (Default Switch)", "InterfaceDescription": "Hyper-V Virtual Ethernet Adapter", "Status": "Up", "Virtual": true, "HardwareInterface": false},
+    {"Name": "VMware Network Adapter VMnet8", "InterfaceDescription": "VMware Virtual Ethernet Adapter for VMnet8", "Status": "Up", "Virtual": true, "HardwareInterface": false},
+    {"Name": "Meta", "InterfaceDescription": "Meta Tunnel", "Status": "Up", "Virtual": true, "HardwareInterface": false}
+  ]
+}

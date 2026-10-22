@@ -1,0 +1,5 @@
+Wired connection 1:-1
+Campus-WiFi:600
+Wired connection 2:-1
+Meta:0
+virbr0:-1

@@ -1,0 +1,46 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "net-egress-switcher"
+version = "0.1.0"
+description = "查看网卡，并在确认后切换 IPv4 默认出口（有线 / Wi-Fi / USB 共享）"
+authors = [{ name = "mi179" }]
+license = { text = "MIT" }
+readme = "README.md"
+requires-python = ">=3.10"
+keywords = ["network", "egress", "route", "wifi", "ethernet", "tethering"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: MacOS",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: System :: Networking",
+]
+dependencies = []
+
+[project.optional-dependencies]
+gui = ["ttkbootstrap>=1.10.1,<2", "pystray>=0.19", "pillow>=10"]
+dev = ["ttkbootstrap>=1.10.1,<2", "pillow>=10"]
+
+[project.urls]
+Homepage = "https://github.com/mi179/net-egress-switcher"
+Repository = "https://github.com/mi179/net-egress-switcher"
+Issues = "https://github.com/mi179/net-egress-switcher/issues"
+
+[project.scripts]
+egress-switcher = "egress_switcher.cli:main"
+net-egress-switcher = "egress_switcher.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+egress_switcher = ["fixtures/**/*"]

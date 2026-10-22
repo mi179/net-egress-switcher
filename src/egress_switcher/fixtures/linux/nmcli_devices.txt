@@ -1,0 +1,7 @@
+enp3s0:ethernet:connected:Wired connection 1
+wlp2s0:wifi:connected:Campus-WiFi
+usb0:ethernet:connected:Wired connection 2
+Meta:tun:connected:Meta
+virbr0:bridge:connected:virbr0
+vmnet8:ethernet:unmanaged:
+lo:loopback:unmanaged:

@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  tests:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Python, Tk and a virtual display
+        run: sudo apt-get update && sudo apt-get install -y python3-tk python3-pil python3-pip python3-venv python3-full xvfb
+      - name: Install package
+        run: |
+          python3 -m venv .venv
+          .venv/bin/pip install --upgrade pip
+          .venv/bin/pip install -e ".[gui]"
+      - name: Unit tests and demo window
+        run: xvfb-run -a .venv/bin/python -m unittest discover -s tests -v
+
+  deb:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install packaging tools
+        run: sudo apt-get update && sudo apt-get install -y dpkg-dev python3-pip python3-venv python3-full python3-pil python3-tk
+      - name: Build Debian package
+        run: bash scripts/linux/build_deb.sh
+      - name: Inspect package
+        run: |
+          dpkg-deb --info dist/net-egress-switcher_*_all.deb
+          dpkg-deb -x dist/net-egress-switcher_*_all.deb /tmp/net-egress-switcher
+          python3 -c "import pathlib,sys; sys.path.insert(0, '/tmp/net-egress-switcher/usr/lib/python3/dist-packages'); import egress_switcher, ttkbootstrap; print(egress_switcher.__version__)"
+          test -x /tmp/net-egress-switcher/usr/bin/egress-switcher
+          test -f /tmp/net-egress-switcher/usr/share/applications/net-egress-switcher.desktop
