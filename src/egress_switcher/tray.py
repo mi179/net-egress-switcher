@@ -1,11 +1,39 @@
-"""菜单栏 / 托盘只负责把主窗口里的预览准备好，不直接改路由。"""
+"""菜单栏 / 托盘只负责把主窗口里的预览准备好，不直接改路由。
+
+macOS 上不启动托盘。pystray 的 AppKit 后端会在 icon.run() 里调用
+NSApplication.run()。这个调用必须在主线程，而主线程已经交给 Tk。
+放到 threading.Thread 里会在打开时直接崩溃：
+NSUpdateCycleInitialize() is called off the main thread.
+"""
 
 from __future__ import annotations
 
+import sys
+import threading
+
+
+def tray_supported() -> bool:
+    return sys.platform != "darwin"
+
+
+def assert_main_thread(action: str = "NSApplication.run") -> None:
+    """AppKit / NSApplication.run 只能在主线程。后台线程调用会 SIGTRAP。"""
+    if threading.current_thread() is not threading.main_thread():
+        raise RuntimeError(
+            f"{action} 不能离开主线程。macOS 上在后台线程调用 NSApplication.run() 会直接崩溃。"
+        )
+
+
+def invoke_appkit_run(run) -> None:
+    """给必须走 AppKit 事件循环的代码用。不在主线程就拒绝，不会去调用 run。"""
+    assert_main_thread("NSApplication.run")
+    run()
+
 
 def start_tray(app):
+    if not tray_supported():
+        return None
     import pystray
-    from PIL import Image, ImageDraw
 
     image = _icon_image()
 
@@ -33,8 +61,7 @@ def start_tray(app):
         return tuple(items)
 
     icon = pystray.Icon("net-egress-switcher", image, "网络出口切换", menu=pystray.Menu(build_menu))
-    import threading
-
+    # Windows / Linux 的托盘循环不碰 AppKit，可以留在后台线程。主线程继续跑 Tk。
     thread = threading.Thread(target=icon.run, name="egress-switcher-tray", daemon=True)
     thread.start()
     return icon

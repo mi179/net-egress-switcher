@@ -12,14 +12,14 @@
 
 ## 下载
 
-到 [Releases 页面](https://github.com/mi179/net-egress-switcher/releases) 下载。当前是 **v0.1.0 预发布**，还没有在真机上验收。请先看下面的安装和用法，试用时出了问题请 [开一个 Issue](https://github.com/mi179/net-egress-switcher/issues)。
+到 [Releases 页面](https://github.com/mi179/net-egress-switcher/releases) 下载。当前是 **v0.1.1 预发布**，还没有在真机上验收。请先看下面的安装和用法，试用时出了问题请 [开一个 Issue](https://github.com/mi179/net-egress-switcher/issues)。
 
 | 系统 | 下载哪个文件 |
 | --- | --- |
 | Windows 10/11 | `net-egress-switcher-windows.zip` |
 | Mac（Apple 芯片，M1 及更新） | `net-egress-switcher-macos-apple-silicon.dmg`，或同名的 `.zip` |
 | Mac（Intel） | `net-egress-switcher-macos-intel.dmg`，或同名的 `.zip` |
-| Ubuntu | `net-egress-switcher_0.1.0_all.deb` |
+| Ubuntu | `net-egress-switcher_0.1.1_all.deb` |
 
 ## 安装
 
@@ -33,14 +33,14 @@
 
 1. 打开 dmg，把「网络出口切换」拖进「应用程序」。用 zip 的话，解压后得到 `网络出口切换.app`。
 2. 这个应用没有苹果公证。第一次打开时，系统可能提示已损坏或无法验证开发者。请在 Finder 里按住 Control 点这个应用，选「打开」，再在对话框里点「打开」。
-3. 不要用 sudo 启动窗口。
+3. 不要用 sudo 启动窗口。Mac 上没有菜单栏图标：托盘会在后台线程启动 AppKit，一打开就崩溃，所以这一版不放。
 
 ### Ubuntu
 
 在 deb 所在的文件夹里执行：
 
 ```bash
-sudo apt install ./net-egress-switcher_0.1.0_all.deb
+sudo apt install ./net-egress-switcher_0.1.1_all.deb
 ```
 
 装好后可以在应用菜单里找「网络出口切换」，也可以在终端运行 `egress-switcher`。`net-egress-switcher` 是同一个命令。
@@ -112,14 +112,14 @@ Pick which network adapter your computer uses to reach the internet: Ethernet, W
 
 ## Download
 
-Get the files from the [Releases page](https://github.com/mi179/net-egress-switcher/releases). **v0.1.0 is a prerelease** and has not been tested on real hardware. If something does not match this guide, [open an issue](https://github.com/mi179/net-egress-switcher/issues).
+Get the files from the [Releases page](https://github.com/mi179/net-egress-switcher/releases). **v0.1.1 is a prerelease** and has not been tested on real hardware. If something does not match this guide, [open an issue](https://github.com/mi179/net-egress-switcher/issues).
 
 | System | File |
 | --- | --- |
 | Windows 10/11 | `net-egress-switcher-windows.zip` |
 | Mac, Apple silicon (M1 or newer) | `net-egress-switcher-macos-apple-silicon.dmg` or the `.zip` with the same name |
 | Mac, Intel | `net-egress-switcher-macos-intel.dmg` or the `.zip` with the same name |
-| Ubuntu | `net-egress-switcher_0.1.0_all.deb` |
+| Ubuntu | `net-egress-switcher_0.1.1_all.deb` |
 
 ## Install
 
@@ -133,14 +133,14 @@ Get the files from the [Releases page](https://github.com/mi179/net-egress-switc
 
 1. Open the dmg and drag 网络出口切换 into Applications. The zip unpacks to `网络出口切换.app`.
 2. The app is not notarized. The first time you open it, macOS may say it is damaged or from an unidentified developer. Control-click the app in Finder, choose Open, then click Open in the dialog.
-3. Do not start the window with sudo.
+3. Do not start the window with sudo. There is no menu-bar icon on Mac: a tray would start AppKit on a background thread and crash on launch, so this version does not add one.
 
 ### Ubuntu
 
 From the folder that contains the deb:
 
 ```bash
-sudo apt install ./net-egress-switcher_0.1.0_all.deb
+sudo apt install ./net-egress-switcher_0.1.1_all.deb
 ```
 
 Then launch 网络出口切换 from the app menu, or run `egress-switcher` in a terminal. `net-egress-switcher` is the same command.

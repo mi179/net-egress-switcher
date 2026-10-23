@@ -79,6 +79,8 @@ jobs:
           python -c "import tkinter; print(tkinter.TkVersion)"
       - name: Build app
         run: bash scripts/macos/build_app.sh
+      - name: Smoke launch the app on the main thread
+        run: bash scripts/macos/smoke_launch.sh "dist/网络出口切换.app/Contents/MacOS/网络出口切换" dist/macos-launch.log
       - uses: actions/upload-artifact@v4
         with:
           name: macos-${{ matrix.architecture }}-release

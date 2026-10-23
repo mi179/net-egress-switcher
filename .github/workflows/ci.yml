@@ -165,6 +165,8 @@ jobs:
           if not any("Contents/MacOS" in name for name in names):
               raise SystemExit("zip 里没有 .app/Contents/MacOS")
           PY
+      - name: Smoke launch the app on the main thread
+        run: bash scripts/macos/smoke_launch.sh "dist/网络出口切换.app/Contents/MacOS/网络出口切换" dist/macos-launch.log
       - uses: actions/upload-artifact@v4
         with:
           name: macos-arm64
