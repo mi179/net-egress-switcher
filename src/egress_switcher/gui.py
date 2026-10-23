@@ -17,6 +17,13 @@ from egress_switcher.models import Interface, InterfaceKind, SystemState
 from egress_switcher.planner import Plan, automatic_blurb, plan_automatic, plan_restore, plan_set
 
 AUTO = "__auto__"
+USAGE_HELP = (
+    "点一张网卡，只刷新下面的预览，这时还没有改系统。\n\n"
+    "看清预览后，点「设为默认出口」，再在系统弹出的授权窗口里同意，修改才会生效。点取消则什么都不改。\n\n"
+    "「恢复到更改前」回到第一次修改之前的状态。「自动」把出口交回系统自己的优先级。\n\n"
+    "如果窗口上方写着流量被虚拟网卡接管，说明代理的 TUN 仍在接走上网流量，切换出口不会改变普通程序的流量。"
+    "请到代理里把出站绑到物理网卡：sing-box 用 route.default_interface 或 auto_detect_interface，mihomo 用 interface-name。"
+)
 KIND_BADGE = {
     InterfaceKind.WIRED: "primary",
     InterfaceKind.WIFI: "info",
@@ -156,6 +163,9 @@ class App:
         print(path)
         self.root.destroy()
 
+    def show_help(self) -> None:
+        self.notify("使用说明", USAGE_HELP)
+
     def notify(self, title: str, message: str) -> None:
         self.last_notice = (title, message)
         self.status.set(message.replace("\n", " ")[:180])
@@ -245,6 +255,8 @@ class App:
 
         header = ttk.Frame(page, padding=(20, 16, 20, 8))
         header.pack(fill="x")
+        self.help_button = self._button(header, "使用说明", self.show_help, primary=False)
+        self.help_button.pack(side="right", anchor="n")
         ttk.Label(header, text="网络出口切换", style="Title.TLabel").pack(anchor="w")
         ttk.Label(
             header,

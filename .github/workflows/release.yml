@@ -98,12 +98,17 @@ jobs:
           merge-multiple: true
       - uses: softprops/action-gh-release@v2
         with:
+          prerelease: true
+          generate_release_notes: true
+          body: |
+            这是预发布版本，还没有在真实的 Windows、macOS 或 Ubuntu 电脑上验收过。安装前请先看该标签上的 README。试用结果和说明不一致时，请到 Issues 反馈：https://github.com/mi179/net-egress-switcher/issues
+
+            This is a prerelease. It has not been tested on real hardware. Read the README on this tag before installing, and open an issue if the app does not match the guide.
           files: |
             dist/net-egress-switcher-windows.zip
             dist/*.deb
             dist/*.dmg
             dist/net-egress-switcher-macos-*.zip
             dist/*.sha256
-          generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
