@@ -1,0 +1,8 @@
+   route to: default
+destination: default
+       mask: default
+    gateway: 198.18.0.2
+  interface: utun4
+      flags: <UP,GATEWAY,DONE,STATIC,PRCLONING>
+ recvpipe  sendpipe  ssthresh  rtt,msec    rttvar  hopcount      mtu     expire
+       0         0         0         0         0         0      9000         0

@@ -1,0 +1,48 @@
+=== Ethernet ===
+DHCP Configuration
+IP address: 192.168.1.50
+Subnet mask: 255.255.255.0
+Router: 192.168.1.1
+Client ID:
+IPv6: Automatic
+IPv6 IP address: 2408:4000:1234::50
+IPv6 IP address: fe80::abcd%en0
+
+=== Wi-Fi ===
+DHCP Configuration
+IP address: 10.20.30.15
+Subnet mask: 255.255.255.0
+Router: 10.20.30.1
+Client ID:
+IPv6: Automatic
+IPv6 IP address: none
+
+=== iPhone USB ===
+DHCP Configuration
+IP address: 172.20.10.5
+Subnet mask: 255.255.255.240
+Router: 172.20.10.1
+Client ID:
+IPv6: Automatic
+IPv6 IP address: none
+
+=== Thunderbolt Bridge ===
+DHCP Configuration
+IP address: none
+Subnet mask: none
+Router: none
+IPv6: Automatic
+IPv6 IP address: none
+
+=== Shadowrocket ===
+Manual Configuration
+IP address: 198.18.0.1
+Subnet mask: 255.255.255.252
+Router: 198.18.0.2
+IPv6: Off
+IPv6 IP address: none
+
+=== USB 10/100/1000 LAN ===
+DHCP Configuration
+IP address: none
+IPv6 IP address: none

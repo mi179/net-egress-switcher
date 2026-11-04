@@ -1,0 +1,10 @@
+default via 192.168.1.1 dev enp3s0 proto dhcp metric 100
+default via 10.20.30.1 dev wlp2s0 proto dhcp metric 600
+default via 172.20.10.1 dev usb0 proto dhcp metric 700
+default via 198.18.0.2 dev Meta proto static metric 0
+192.168.1.0/24 dev enp3s0 proto kernel scope link src 192.168.1.50 metric 100
+10.20.30.0/24 dev wlp2s0 proto kernel scope link src 10.20.30.15 metric 600
+172.20.10.0/28 dev usb0 proto kernel scope link src 172.20.10.5 metric 700
+198.18.0.0/30 dev Meta proto kernel scope link src 198.18.0.1
+192.168.148.0/24 dev vmnet8 proto kernel scope link src 192.168.148.1 metric 256
+172.20.80.0/24 dev virbr0 proto kernel scope link src 172.20.80.1 metric 425

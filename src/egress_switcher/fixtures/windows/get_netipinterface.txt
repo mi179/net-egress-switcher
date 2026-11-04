@@ -1,0 +1,47 @@
+InterfaceIndex  : 8
+InterfaceAlias  : 以太网
+InterfaceMetric : 25
+AutomaticMetric : Enabled
+ConnectionState : Connected
+
+InterfaceIndex  : 12
+InterfaceAlias  : Wi-Fi
+InterfaceMetric : 50
+AutomaticMetric : Enabled
+ConnectionState : Connected
+
+InterfaceIndex  : 20
+InterfaceAlias  : 以太网 2
+InterfaceMetric : 35
+AutomaticMetric : Enabled
+ConnectionState : Connected
+
+InterfaceIndex  : 22
+InterfaceAlias  : 以太网 3
+InterfaceMetric : 25
+AutomaticMetric : Enabled
+ConnectionState : Disconnected
+
+InterfaceIndex  : 36
+InterfaceAlias  : vEthernet (Default Switch)
+InterfaceMetric : 15
+AutomaticMetric : Enabled
+ConnectionState : Connected
+
+InterfaceIndex  : 41
+InterfaceAlias  : VMware Network Adapter VMnet8
+InterfaceMetric : 25
+AutomaticMetric : Disabled
+ConnectionState : Connected
+
+InterfaceIndex  : 5
+InterfaceAlias  : Meta
+InterfaceMetric : 0
+AutomaticMetric : Disabled
+ConnectionState : Connected
+
+InterfaceIndex  : 1
+InterfaceAlias  : Loopback Pseudo-Interface 1
+InterfaceMetric : 75
+AutomaticMetric : Enabled
+ConnectionState : Connected

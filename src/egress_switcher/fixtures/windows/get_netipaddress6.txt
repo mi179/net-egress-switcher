@@ -1,0 +1,8 @@
+InterfaceAlias : 以太网
+IPAddress      : 2408:4000:1234::50
+
+InterfaceAlias : 以太网
+IPAddress      : fe80::abcd%8
+
+InterfaceAlias : Wi-Fi
+IPAddress      : fe80::1234%12

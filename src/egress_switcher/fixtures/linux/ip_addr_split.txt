@@ -1,0 +1,6 @@
+2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    inet 192.168.0.20/24 brd 192.168.0.255 scope global dynamic eth0
+3: enp3s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    inet 192.168.1.20/24 brd 192.168.1.255 scope global dynamic enp3s0
+5: utun1024: <POINTOPOINT,NOARP,UP,LOWER_UP> mtu 9000 qdisc fq_codel state UNKNOWN group default qlen 500
+    inet 198.18.0.1/30 scope global utun1024

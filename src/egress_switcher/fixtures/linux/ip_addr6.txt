@@ -1,0 +1,5 @@
+2: enp3s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 state UP qlen 1000
+    inet6 2408:4000:1234::50/64 scope global dynamic
+    inet6 fe80::abcd/64 scope link
+3: wlp2s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 state UP qlen 1000
+    inet6 fe80::1234/64 scope link

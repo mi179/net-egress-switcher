@@ -1,0 +1,177 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  tests:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Python, Tk and a virtual display
+        run: sudo apt-get update && sudo apt-get install -y python3-tk python3-pil python3-pip python3-venv python3-full xvfb
+      - name: Install package
+        run: |
+          python3 -m venv .venv
+          .venv/bin/pip install --upgrade pip
+          .venv/bin/pip install -e ".[gui]"
+      - name: Unit tests and demo window
+        run: xvfb-run -a .venv/bin/python -m unittest discover -s tests -v
+
+  deb:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install packaging tools
+        run: sudo apt-get update && sudo apt-get install -y dpkg-dev python3-pip python3-venv python3-full python3-pil python3-pil.imagetk python3-tk
+      - name: Build Debian package
+        run: bash scripts/linux/build_deb.sh
+      - name: Inspect package
+        run: |
+          set -euo pipefail
+          dpkg-deb --info dist/net-egress-switcher_*_all.deb
+          rm -rf /tmp/net-egress-switcher
+          dpkg-deb -x dist/net-egress-switcher_*_all.deb /tmp/net-egress-switcher
+          export PYTHONPATH=/tmp/net-egress-switcher/usr/lib/python3/dist-packages
+          python3 -c "import egress_switcher, ttkbootstrap; print('import', egress_switcher.__version__)"
+          python3 /tmp/net-egress-switcher/usr/bin/egress-switcher --help | tee dist/deb-help.txt
+          grep -q "egress-switcher" dist/deb-help.txt
+          test -x /tmp/net-egress-switcher/usr/bin/egress-switcher
+          test -f /tmp/net-egress-switcher/usr/share/applications/net-egress-switcher.desktop
+          echo "---- sha256 ----"
+          cat dist/*.sha256
+      - uses: actions/upload-artifact@v4
+        with:
+          name: deb
+          if-no-files-found: error
+          path: |
+            dist/*.deb
+            dist/*.sha256
+            dist/deb-help.txt
+
+  # GUI 无控制台（build.py --windowed），CLI 带控制台。产物是 zip 加 sha256。
+  windows:
+    runs-on: windows-latest
+    env:
+      PYTHONUTF8: "1"
+      PYTHONIOENCODING: "utf-8"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[gui]"
+          pip install pyinstaller
+      - name: Build executables
+        run: python build.py
+      - name: Smoke test CLI --help
+        shell: pwsh
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $false
+          $OutputEncoding = [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
+          foreach ($name in @("net-egress-switcher-gui.exe", "net-egress-switcher-cli.exe")) {
+            if (-not (Test-Path "dist\$name")) { throw "missing $name" }
+          }
+          function Get-PeSubsystem([string]$Path) {
+            $fs = [System.IO.File]::OpenRead((Resolve-Path $Path))
+            try {
+              $br = New-Object System.IO.BinaryReader($fs)
+              $fs.Position = 0x3C
+              $pe = $br.ReadInt32()
+              $fs.Position = $pe + 24 + 68
+              return $br.ReadUInt16()
+            } finally { $fs.Close() }
+          }
+          $guiSub = Get-PeSubsystem "dist\net-egress-switcher-gui.exe"
+          $cliSub = Get-PeSubsystem "dist\net-egress-switcher-cli.exe"
+          Write-Host "PE subsystem GUI=$guiSub CLI=$cliSub (2=window, 3=console)"
+          if ($guiSub -ne 2) { throw "GUI exe is not a windowed binary" }
+          if ($cliSub -ne 3) { throw "CLI exe is not a console binary" }
+          $guiBytes = [System.IO.File]::ReadAllBytes((Resolve-Path "dist\net-egress-switcher-gui.exe"))
+          $guiText = [System.Text.Encoding]::UTF8.GetString($guiBytes)
+          if ($guiText -notmatch "PerMonitorV2") { throw "GUI exe manifest does not declare PerMonitorV2" }
+          if ($guiText -notmatch "asInvoker") { throw "GUI exe manifest must stay asInvoker" }
+          $help = & .\dist\net-egress-switcher-cli.exe --help
+          $code = $LASTEXITCODE
+          $help | Out-File -FilePath dist\windows-cli-help.txt -Encoding utf8
+          $help
+          if ($code -ne 0) { exit $code }
+          if (($help -join "`n") -notmatch "egress-switcher") { throw "CLI --help did not mention egress-switcher" }
+      - name: Package zip and sha256
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path dist\windows-package | Out-Null
+          Copy-Item docs\QUICK_START_WINDOWS.md dist\windows-package\0-先看我.md
+          Copy-Item dist\net-egress-switcher-gui.exe dist\windows-package\1-点我启动-网络出口切换.exe
+          Copy-Item dist\net-egress-switcher-cli.exe dist\windows-package\9-命令行-egress-switcher.exe
+          Copy-Item docs\HARDWARE_CHECKLIST.md dist\windows-package\真机验收清单.md
+          Compress-Archive -Path dist\windows-package\* -DestinationPath dist\net-egress-switcher-windows.zip
+          $hash = (Get-FileHash -Algorithm SHA256 dist\net-egress-switcher-windows.zip).Hash.ToLower()
+          [System.IO.File]::WriteAllText("$pwd\dist\net-egress-switcher-windows.zip.sha256", "$hash  net-egress-switcher-windows.zip`n")
+          Get-Content dist\net-egress-switcher-windows.zip.sha256
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows
+          if-no-files-found: error
+          path: |
+            dist/net-egress-switcher-windows.zip
+            dist/net-egress-switcher-windows.zip.sha256
+            dist/windows-cli-help.txt
+
+  # build.py 只打单文件，不打 .app。这里用仓库里的 scripts/macos/build_app.sh，runner 固定为 macos-14（arm64）。
+  macos-arm64:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - name: Confirm Apple Silicon
+        run: |
+          uname -m
+          test "$(uname -m)" = "arm64"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[gui]"
+          pip install pyinstaller
+          python -c "import tkinter; print(tkinter.TkVersion)"
+      - name: Build app
+        run: PYTHON_BIN="$(command -v python)" bash scripts/macos/build_app.sh
+      - name: Smoke test app --help and name the arm64 zip
+        run: |
+          set -euo pipefail
+          BIN="dist/网络出口切换.app/Contents/MacOS/网络出口切换"
+          test -x "$BIN"
+          "$BIN" --help | tee dist/macos-app-help.txt
+          grep -q "egress-switcher" dist/macos-app-help.txt
+          (
+            cd dist
+            cp net-egress-switcher-macos-apple-silicon.zip net-egress-switcher-macos-arm64.zip
+            shasum -a 256 net-egress-switcher-macos-arm64.zip > net-egress-switcher-macos-arm64.zip.sha256
+            cat net-egress-switcher-macos-arm64.zip.sha256
+          )
+          python3 - <<'PY'
+          import zipfile
+          path = "dist/net-egress-switcher-macos-arm64.zip"
+          names = zipfile.ZipFile(path).namelist()
+          print("\n".join(names[:40]))
+          if not any("Contents/MacOS" in name for name in names):
+              raise SystemExit("zip 里没有 .app/Contents/MacOS")
+          PY
+      - name: Smoke launch the app on the main thread
+        run: bash scripts/macos/smoke_launch.sh "dist/网络出口切换.app/Contents/MacOS/网络出口切换" dist/macos-launch.log
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos-arm64
+          if-no-files-found: error
+          path: |
+            dist/net-egress-switcher-macos-arm64.zip
+            dist/net-egress-switcher-macos-arm64.zip.sha256
+            dist/macos-app-help.txt
